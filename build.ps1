@@ -22,6 +22,10 @@ try {
     if ($Test) {
         & $Compiler -std=c++17 -O2 -Wall -Wextra -static tests/native.cpp -lbcrypt -o build/native-test.exe
         if ($LASTEXITCODE -ne 0) { throw 'Native test build failed' }
+        & $Compiler -std=c++17 -O2 -Wall -Wextra -static tests/evidence-log.cpp -lbcrypt -o build/evidence-log-test.exe
+        if ($LASTEXITCODE -ne 0) { throw 'Evidence log test build failed' }
+        & ./build/evidence-log-test.exe
+        if ($LASTEXITCODE -ne 0) { throw 'Evidence log tests failed' }
         & ./build/native-test.exe
         if ($LASTEXITCODE -ne 0) { throw 'Native tests failed' }
         if ($GameExe) {

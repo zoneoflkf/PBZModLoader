@@ -45,6 +45,8 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 传入内容须与对应本地文件一致，执行源码只允许原文或 PuerTS 的 CommonJS 包装。
 原游戏脚本仍由原校验函数处理；路径越界、内容不一致或特征缺失时拒绝。
 PuerTS 警告和错误现在也写入 loader.log，便于定位引导脚本执行前的失败。
+
+每段加载器日志最多 8 MiB，同一次运行按 loader.log、loader.1.log、loader.2.log 的顺序写入。启动和轮转时，加载器按最后写入时间清理最旧的日志，为新段预留空间，使 evidence 目录内的普通文件总大小保持在配置的预算以内。其他文件也计入预算，但只清理加载器日志；空间不足时暂停记录，每 5 秒重试。在 mods.ini 的 [Loader] 下设置 LogDirectoryLimitMiB（整数 MiB）；小于 120 按 120，大于 4096 按 4096，未设置或格式无效时按 2048。重启游戏后生效。
 不使用固定地址回退。升级时退出游戏，替换当前选用的代理 DLL，并更新 bootstrap.js；配置与 MOD 无需改动。
 
 先前的 0.3.5-preview 只补充 MainStart 指令匹配，遗漏了脚本校验适配，会导致原游戏菜单初始化异常，

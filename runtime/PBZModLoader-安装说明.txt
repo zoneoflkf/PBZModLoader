@@ -1,4 +1,4 @@
-PBZModLoader 1.0.0 正式版安装说明
+PBZModLoader 1.0.2 正式版安装说明
 
 1. 退出游戏，打开游戏安装目录（能看到 ProjectPBZ 文件夹的位置）。
 2. 先检查实际游戏 EXE 旁是否已有其他工具的 version.dll；如有，请按下方“备用入口”安装，勿覆盖。
@@ -69,6 +69,7 @@ stop 一直不结束会阻塞后续重载。TS 编译失败时保留旧实例，
 
 日志：ProjectPBZ\PBZModLoader\evidence\<本次运行>\loader.log。
 
+在 mods.ini 的 [Loader] 下设置 LogRetentionRuns，重启后生效。默认保留最近 10 次普通运行（含本次）；设为 0 时关闭加载器日志并保留已有记录。带验证文件或其他额外内容的目录单独保留，不占次数。
 每段最多 8 MiB，后续分段为 loader.1.log、loader.2.log 等。evidence 目录预算默认为 2 GiB；启动和轮转时优先清理最旧的加载器日志，空间不足时暂停写入。在 mods.ini 的 [Loader] 下设置 LogDirectoryLimitMiB（整数 MiB）；小于 120 按 120，大于 4096 按 4096，未设置或格式无效时按 2048。重启游戏后生效。
 可查找 failed、reload blocked、reload complete；快捷键无响应时也检查注册失败记录。
 TS 编译诊断另存于对应缓存 MOD 目录内的 compile.log。

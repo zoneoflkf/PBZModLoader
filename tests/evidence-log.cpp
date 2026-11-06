@@ -2,10 +2,50 @@
 #include "../src/evidence-log.hpp"
 #include <winioctl.h>
 
+static void testRunRetention(const fs::path& root) {
+    check(evidenceRunLimit(L"")==10 && evidenceRunLimit(L"-1")==10 &&
+          evidenceRunLimit(L"2x")==10 && evidenceRunLimit(L"00")==0,"parse retention");
+    const auto runPath=[&](int day) {
+        return root/("202601"+std::to_string(10+day)+"-000000-1-dll");
+    };
+    EvidenceLog disabled;
+    disabled.initialize(runPath(0),L"",L"0");
+    disabled.append("silent");
+    check(!fs::exists(root),"disabled does not create evidence");
+    EvidenceLog active;
+    active.initialize(runPath(0));
+    active.append("active");
+    for(int day=1;day<=13;++day) {
+        EvidenceLog logger;
+        logger.initialize(runPath(day));
+        logger.append("record");
+        if(day==1) std::ofstream(runPath(day)/"verification.json")<<"{}";
+        if(day==2) std::ofstream(runPath(day)/"loader.1.log")<<"old";
+    }
+    check(fs::exists(runPath(0)/"loader.log") && fs::exists(runPath(1)/"loader.log") &&
+          fs::exists(runPath(1)/"verification.json"),"protect active and annotated runs");
+    check(!fs::exists(runPath(2)) && !fs::exists(runPath(3)) &&
+          fs::exists(runPath(4)/"loader.log"),"retain ten complete ordinary runs");
+    EvidenceLog single;
+    single.initialize(runPath(14),L"",L"1");
+    single.append("latest");
+    disabled.append("silent");
+    check(!fs::exists(runPath(13)) && fs::exists(runPath(14)/"loader.log"),"custom limit");
+    // Protected files still consume the budget, including their loader logs.
+    std::ofstream(root/"ballast").close();
+    fs::resize_file(root/"ballast",120ULL<<20);
+    EvidenceLog blocked;
+    blocked.initialize(runPath(15),L"120",L"1");
+    blocked.append("no room");
+    check(fs::exists(runPath(1)/"loader.log") && !fs::exists(runPath(15)),"protect evidence under quota pressure");
+}
+
 int main() {
     const fs::path root=fs::temp_directory_path()/("pbz-log-test-"+std::to_string(GetCurrentProcessId()));
     try {
         check(fs::create_directory(root),"create unique fixture");
+        testRunRetention(root/L"retention");
+        fs::remove_all(root/L"retention");
         check(evidenceBudget(L"-9")==120ULL<<20 && evidenceBudget(L"119")==120ULL<<20,"minimum budget");
         check(evidenceBudget(L"512")==512ULL<<20,"custom budget");
         check(evidenceBudget(L"4097")==4ULL<<30 && evidenceBudget(L"999999999999999999999")==4ULL<<30,"maximum budget");

@@ -1,6 +1,18 @@
 #pragma once
 #include <algorithm>
 #include <cwchar>
+#include <limits>
+
+inline U64 evidenceRunLimit(const std::wstring& value) {
+    if(value.empty() || value.find_first_not_of(L"0123456789")!=std::wstring::npos) return 10;
+    U64 limit=0;
+    for(auto digit:value) {
+        const auto n=static_cast<unsigned>(digit-L'0');
+        if(limit>(std::numeric_limits<U64>::max()-n)/10) return 10;
+        limit=limit*10+n;
+    }
+    return limit;
+}
 
 inline U64 evidenceBudget(const std::wstring& value) {
     constexpr U64 defaultBudget=2048ULL<<20;
@@ -16,6 +28,7 @@ inline U64 evidenceBudget(const std::wstring& value) {
 class EvidenceLog {
     static constexpr DWORD segmentLimit=8*1024*1024;
     U64 directoryLimit=0;
+    U64 runLimit=10;
     static constexpr char shutdownLine[]="process-detach shutdown=true (not an exit-code assertion)\r\n";
     fs::path run;
     HANDLE file=INVALID_HANDLE_VALUE;
@@ -37,10 +50,16 @@ class EvidenceLog {
         static const std::wregex logName(L"loader(\\.[0-9]+)?\\.log");
         U64 total=segmentLimit;
         std::vector<Candidate> old;
+        std::set<fs::path> ordinary, protectedRuns, busy;
         for(auto it=fs::recursive_directory_iterator(root); it!=fs::recursive_directory_iterator(); ++it) {
             const auto& path=it->path();
             auto attr=GetFileAttributesW(path.c_str());
             if(attr==INVALID_FILE_ATTRIBUTES) return false;
+            const auto parent=path.parent_path();
+            if(it.depth()==0 && it->is_directory() && !(attr & FILE_ATTRIBUTE_REPARSE_POINT) &&
+               std::regex_match(path.filename().wstring(),runName)) ordinary.insert(path);
+            if(it.depth()==1 && ((attr & FILE_ATTRIBUTE_REPARSE_POINT) || !it->is_regular_file() ||
+               !std::regex_match(path.filename().wstring(),logName))) protectedRuns.insert(parent);
             if(attr & FILE_ATTRIBUTE_REPARSE_POINT) { it.disable_recursion_pending(); continue; }
             if(!it->is_regular_file()) continue;
             U64 size=it->file_size();
@@ -53,16 +72,31 @@ class EvidenceLog {
             Handle probe(CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
                                      nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
             if(probe.h==INVALID_HANDLE_VALUE) {
+                busy.insert(parent);
                 if(size<segmentLimit) total+=segmentLimit-size;
                 continue;
             }
             old.push_back({path,it->last_write_time(),size});
         }
+        for(const auto& path:protectedRuns) ordinary.erase(path);
+        // Reserve a slot for this run even before its first segment exists.
+        ordinary.erase(run);
+        U64 kept=protectedRuns.count(run) ? 0 : 1;
+        std::set<fs::path> expired;
+        for(auto it=ordinary.rbegin();it!=ordinary.rend();++it) {
+            if(kept++>=runLimit && !busy.count(*it)) expired.insert(*it);
+        }
         std::sort(old.begin(),old.end(),[](const Candidate& a,const Candidate& b) {
             return a.time!=b.time ? a.time<b.time : a.path<b.path;
         });
         for(const auto& item:old) {
+            if(!expired.count(item.path.parent_path())) continue;
+            if(DeleteFileW(item.path.c_str())) total-=item.size;
+        }
+        for(const auto& path:expired) RemoveDirectoryW(path.c_str());
+        for(const auto& item:old) {
             if(total<=directoryLimit) break;
+            if(expired.count(item.path.parent_path()) || protectedRuns.count(item.path.parent_path())) continue;
             if(DeleteFileW(item.path.c_str())) {
                 total-=item.size;
                 if(item.path.parent_path()!=run) RemoveDirectoryW(item.path.parent_path().c_str());
@@ -77,6 +111,10 @@ class EvidenceLog {
         DWORD result=WaitForSingleObject(gate.h,1000);
         if(result!=WAIT_OBJECT_0 && result!=WAIT_ABANDONED) return false;
         struct Unlock { HANDLE mutex; ~Unlock(){ ReleaseMutex(mutex); } } unlock{gate.h};
+        if(file!=INVALID_HANDLE_VALUE) {
+            CloseHandle(file);
+            file=INVALID_HANDLE_VALUE;
+        }
         fs::create_directories(run.parent_path());
         if(!makeRoom()) return false;
         fs::create_directories(run);
@@ -95,19 +133,18 @@ public:
     EvidenceLog(const EvidenceLog&)=delete;
     EvidenceLog& operator=(const EvidenceLog&)=delete;
 
-    void initialize(const fs::path& directory,const std::wstring& budget={}) {
+    void initialize(const fs::path& directory,const std::wstring& budget={},const std::wstring& retention={}) {
         run=directory;
         directoryLimit=evidenceBudget(budget);
+        runLimit=evidenceRunLimit(retention);
     }
+    bool enabled() const { return !run.empty() && runLimit!=0; }
     void append(const std::string& line) noexcept {
+        if(!enabled()) return;
         AcquireSRWLockExclusive(&lock);
         struct Unlock { SRWLOCK* lock; ~Unlock(){ ReleaseSRWLockExclusive(lock); } } unlock{&lock};
-        if(run.empty() || line.size()>segmentLimit-sizeof(shutdownLine)) return;
-        if(file!=INVALID_HANDLE_VALUE && bytes+line.size()+sizeof(shutdownLine)>segmentLimit) {
-            CloseHandle(file);
-            file=INVALID_HANDLE_VALUE;
-        }
-        if(file==INVALID_HANDLE_VALUE) {
+        if(line.size()>segmentLimit-sizeof(shutdownLine)) return;
+        if(file==INVALID_HANDLE_VALUE || bytes+line.size()+sizeof(shutdownLine)>segmentLimit) {
             auto now=GetTickCount64();
             if(now<retryAt) return;
             retryAt=now+5000;

@@ -68,6 +68,8 @@ stop 一直不结束会阻塞后续重载。TS 编译失败时保留旧实例，
 日志和缓存
 
 日志：ProjectPBZ\PBZModLoader\evidence\<本次运行>\loader.log。
+
+每段最多 8 MiB，后续分段为 loader.1.log、loader.2.log 等。evidence 目录预算为 2 GiB；启动和轮转时优先清理最旧的加载器日志，空间不足时暂停写入。
 可查找 failed、reload blocked、reload complete；快捷键无响应时也检查注册失败记录。
 TS 编译诊断另存于对应缓存 MOD 目录内的 compile.log。
 ProjectPBZ\Content\JavaScript\PBZModLoader 下的 generated-mods、generated-reloads

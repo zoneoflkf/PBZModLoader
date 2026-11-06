@@ -1,5 +1,6 @@
 #define PBZ_DLL
 #include "core.hpp"
+#include "evidence-log.hpp"
 #include "mod-validation.hpp"
 #include "proxy_config.hpp"
 #include <atomic>
@@ -8,7 +9,7 @@ extern "C" void pbz_entry_gate();
 extern "C" { void* pbz_original_entry=nullptr; }
 static unsigned char entryBytes[14];
 static HMODULE selfModule=nullptr;
-static HANDLE logFile=INVALID_HANDLE_VALUE;
+static EvidenceLog evidenceLog;
 static INIT_ONCE versionOnce=INIT_ONCE_STATIC_INIT;
 static HMODULE realVersion=nullptr;
 static std::atomic<FARPROC> versionFunctions[proxyCount]{};
@@ -54,13 +55,9 @@ extern "C" FARPROC pbz_resolve_version(unsigned index) noexcept {
     SetLastError(error); return function;
 }
 void log(const std::string& s) {
-    if(logFile==INVALID_HANDLE_VALUE) return;
     SYSTEMTIME t; GetLocalTime(&t); char time[40];
     snprintf(time,sizeof(time),"[%02u:%02u:%02u.%03u] ",t.wHour,t.wMinute,t.wSecond,t.wMilliseconds);
-    std::string line=std::string(time)+s+"\r\n"; DWORD written;
-    // FILE_APPEND_DATA and a single WriteFile per record allow the shutdown marker
-    // to use this handle without a C++ lock or allocation in DllMain.
-    WriteFile(logFile,line.data(),(DWORD)line.size(),&written,nullptr);
+    evidenceLog.append(std::string(time)+s+"\r\n");
 }
 static DWORD WINAPI monitor(void* context) noexcept {
     U64 slab=(U64)context,next=0,starts=0;
@@ -129,9 +126,7 @@ extern "C" void pbz_initialize() noexcept {
         const fs::path root=project/L"PBZModLoader", scripts=project/L"Content/JavaScript/PBZModLoader";
         SYSTEMTIME st; GetLocalTime(&st); wchar_t name[80];
         swprintf(name,80,L"%04u%02u%02u-%02u%02u%02u-%lu-dll",st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond,GetCurrentProcessId());
-        fs::path evidence=root/L"evidence"/name; fs::create_directories(evidence);
-        logFile=CreateFileW((evidence/L"loader.log").c_str(),FILE_APPEND_DATA,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
-        check(logFile!=INVALID_HANDLE_VALUE,"create DLL log");
+        evidenceLog.initialize(root/L"evidence"/name);
         log("backend=dll; startup=exe-entry; debugger-api=none");
         log("entry-restored; pid="+std::to_string(GetCurrentProcessId()));
         HMODULE pinned=nullptr;
@@ -214,10 +209,6 @@ BOOL WINAPI DllMain(HINSTANCE module,DWORD reason,void* reserved) {
         // Accidentally installing multiple entries must not chain entry gates.
         if(reserved) armEntry(module);
     }
-    else if(reason==DLL_PROCESS_DETACH && reserved && logFile!=INVALID_HANDLE_VALUE) {
-        static const char marker[]="process-detach shutdown=true (not an exit-code assertion)\r\n";
-        DWORD written; WriteFile(logFile,marker,sizeof(marker)-1,&written,nullptr);
-        // No joins, loader calls or C++ stream destruction here. OS closes the handle.
-    }
+    else if(reason==DLL_PROCESS_DETACH && reserved) evidenceLog.shutdown();
     return TRUE;
 }

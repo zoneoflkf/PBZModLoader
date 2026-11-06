@@ -55,6 +55,7 @@ extern "C" FARPROC pbz_resolve_version(unsigned index) noexcept {
     SetLastError(error); return function;
 }
 void log(const std::string& s) {
+    if(!evidenceLog.enabled()) return;
     SYSTEMTIME t; GetLocalTime(&t); char time[40];
     snprintf(time,sizeof(time),"[%02u:%02u:%02u.%03u] ",t.wHour,t.wMinute,t.wSecond,t.wMilliseconds);
     evidenceLog.append(std::string(time)+s+"\r\n");
@@ -66,7 +67,7 @@ static DWORD WINAPI monitor(void* context) noexcept {
     unsigned revision=1;
     try {
         for(;;) {
-            drain(GetCurrentProcess(),slab,next);
+            if(evidenceLog.enabled()) drain(GetCurrentProcess(),slab,next);
             U64 current=0; read(GetCurrentProcess(),slab+4104,&current,8);
             if(current!=starts) { starts=current; log("main-start count="+std::to_string(starts)); }
             DWORD foregroundProcess=0;
@@ -129,7 +130,10 @@ extern "C" void pbz_initialize() noexcept {
         std::wstring logBudget;
         try { logBudget=ini(root/L"mods.ini",L"Loader",L"LogDirectoryLimitMiB"); }
         catch(const std::runtime_error&) { /* Oversized config value: use the default. */ }
-        evidenceLog.initialize(root/L"evidence"/name,logBudget);
+        std::wstring retention;
+        try { retention=ini(root/L"mods.ini",L"Loader",L"LogRetentionRuns"); }
+        catch(const std::runtime_error&) { /* Oversized config value: use the default. */ }
+        evidenceLog.initialize(root/L"evidence"/name,logBudget,retention);
         log("backend=dll; startup=exe-entry; debugger-api=none");
         log("entry-restored; pid="+std::to_string(GetCurrentProcessId()));
         HMODULE pinned=nullptr;

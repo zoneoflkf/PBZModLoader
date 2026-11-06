@@ -25,6 +25,10 @@ Install Node.js and npm on your development machine, then run `npm ci`, `npm run
 
 This repository contains loader source code, runtime file templates, the SDK, and development tools. Players should download an installation package from the release page above. Locally built player packages are placed in `releases/`; only runtime files belong in the game installation directory.
 
+## 1.0.2: Log retention by run count
+
+The loader keeps logs from the latest 10 ordinary runs by default. To change the number of runs, set `LogRetentionRuns` under `[Loader]` in `mods.ini`. Set it to `0` and restart the game to stop writing new logs and keep existing logs.
+
 ## 1.0.1: Log storage limit
 
 Loader logs rotate in 8 MiB segments with a default total budget of 2 GiB. To change it, set LogDirectoryLimitMiB (120–4096 MiB) under [Loader] in mods.ini. Keep your existing mods.ini and mods folder when upgrading; older configs work without changes.
@@ -47,6 +51,8 @@ The updated game also validates module bytes and executed source code. The loade
 
 PuerTS warnings and errors are now also written to `loader.log`, helping diagnose failures before the bootstrap script executes. There is no fixed-address fallback. To upgrade, exit the game, replace your selected proxy DLL, and update `bootstrap.js`. Your configuration and mods do not need changes.
 
+Set `LogRetentionRuns` under `[Loader]` in `mods.ini` and restart the game. The default keeps the latest 10 ordinary runs, including the current one. Set it to 0 to disable loader logging and leave existing evidence intact. Runs containing verification files or other extra content are preserved outside the count. Active writers are exempt from run-count cleanup.
+
 Loader logs rotate at 8 MiB per segment, starting with loader.log and continuing with loader.1.log, loader.2.log, and so on. At startup and rotation, the loader removes its oldest logs by last write time to reserve room for a new segment within the configured evidence directory budget. Set LogDirectoryLimitMiB under [Loader] in mods.ini and restart the game. Integer values are clamped to 120–4096 MiB. Missing or invalid values use 2048 MiB. Other regular files count toward the budget and are preserved. When space cannot be reclaimed, logging pauses and retries on subsequent writes at five-second intervals.
 
 The earlier 0.3.5-preview release only added MainStart matching and omitted script validation compatibility, which could break initialization of the original game menus. It has been withdrawn to `releases/archive` and should no longer be used.
@@ -67,7 +73,7 @@ The four alternative entry points passed startup validation on the Steam build t
 
 Builds use fixed export lists in `src/version.def` and `src/proxies/*.def`. `scripts/generate-proxies.cjs` generates five sets of configurations and forwarding stubs without reading the build machine's System32 directory. Named exports are forwarded by name where possible; NONAME exports use ordinals. System functions are resolved on demand, so missing optional interfaces that are never used do not prevent startup. Calling an unavailable interface on an unknown system fails fast. These lists come from the exports observed on the locally tested system and do not guarantee undocumented ordinal ABIs across all historical Windows versions. Only proxies loaded statically during startup install the executable entry hook; proxies loaded through LoadLibrary at runtime only forward functions.
 
-`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` defaults to stable version `1.0.1` and checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
+`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` defaults to stable version `1.0.2` and checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
 
 ## 0.3.0-preview: Platform-independent bootstrap
 
@@ -81,7 +87,7 @@ Additional checks:
 
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.1
+.\package.ps1 -Version 1.0.2
 ```
 
 `-GameExe` reads the file without launching or modifying the game. This regression test targets known Steam baseline files and checks scan results, address rearrangement, ASLR, call-offset changes, and rejection of ambiguous or damaged data.
@@ -114,7 +120,7 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.1
+.\package.ps1 -Version 1.0.2
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.

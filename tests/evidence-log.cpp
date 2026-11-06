@@ -6,6 +6,10 @@ int main() {
     const fs::path root=fs::temp_directory_path()/("pbz-log-test-"+std::to_string(GetCurrentProcessId()));
     try {
         check(fs::create_directory(root),"create unique fixture");
+        check(evidenceBudget(L"-9")==120ULL<<20 && evidenceBudget(L"119")==120ULL<<20,"minimum budget");
+        check(evidenceBudget(L"512")==512ULL<<20,"custom budget");
+        check(evidenceBudget(L"4097")==4ULL<<30 && evidenceBudget(L"999999999999999999999")==4ULL<<30,"maximum budget");
+        check(evidenceBudget(L"")==2ULL<<30 && evidenceBudget(L"256x")==2ULL<<30,"default budget");
         constexpr U64 expectedBudget=2ULL<<30;
         // Leave 128 MiB for rotation fixtures without writing 2 GiB of data.
         const auto ballast=root/L"retained.bin";

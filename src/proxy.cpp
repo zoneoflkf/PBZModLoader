@@ -126,7 +126,10 @@ extern "C" void pbz_initialize() noexcept {
         const fs::path root=project/L"PBZModLoader", scripts=project/L"Content/JavaScript/PBZModLoader";
         SYSTEMTIME st; GetLocalTime(&st); wchar_t name[80];
         swprintf(name,80,L"%04u%02u%02u-%02u%02u%02u-%lu-dll",st.wYear,st.wMonth,st.wDay,st.wHour,st.wMinute,st.wSecond,GetCurrentProcessId());
-        evidenceLog.initialize(root/L"evidence"/name);
+        std::wstring logBudget;
+        try { logBudget=ini(root/L"mods.ini",L"Loader",L"LogDirectoryLimitMiB"); }
+        catch(const std::runtime_error&) { /* Oversized config value: use the default. */ }
+        evidenceLog.initialize(root/L"evidence"/name,logBudget);
         log("backend=dll; startup=exe-entry; debugger-api=none");
         log("entry-restored; pid="+std::to_string(GetCurrentProcessId()));
         HMODULE pinned=nullptr;

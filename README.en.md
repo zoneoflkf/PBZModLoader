@@ -43,7 +43,7 @@ The updated game also validates module bytes and executed source code. The loade
 
 PuerTS warnings and errors are now also written to `loader.log`, helping diagnose failures before the bootstrap script executes. There is no fixed-address fallback. To upgrade, exit the game, replace your selected proxy DLL, and update `bootstrap.js`. Your configuration and mods do not need changes.
 
-Loader logs rotate at 8 MiB per segment, starting with loader.log and continuing with loader.1.log, loader.2.log, and so on. At startup and rotation, the loader removes its oldest logs by last write time to reserve room for a new segment within a 2 GiB evidence directory budget. Other regular files count toward the budget and are preserved. When space cannot be reclaimed, logging pauses and retries on subsequent writes at five-second intervals.
+Loader logs rotate at 8 MiB per segment, starting with loader.log and continuing with loader.1.log, loader.2.log, and so on. At startup and rotation, the loader removes its oldest logs by last write time to reserve room for a new segment within the configured evidence directory budget. Set LogDirectoryLimitMiB under [Loader] in mods.ini and restart the game. Integer values are clamped to 120–4096 MiB. Missing or invalid values use 2048 MiB. Other regular files count toward the budget and are preserved. When space cannot be reclaimed, logging pauses and retries on subsequent writes at five-second intervals.
 
 The earlier 0.3.5-preview release only added MainStart matching and omitted script validation compatibility, which could break initialization of the original game menus. It has been withdrawn to `releases/archive` and should no longer be used.
 

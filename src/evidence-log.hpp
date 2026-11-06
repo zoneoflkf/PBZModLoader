@@ -1,11 +1,21 @@
 #pragma once
 #include <algorithm>
+#include <cwchar>
+
+inline U64 evidenceBudget(const std::wstring& value) {
+    constexpr U64 defaultBudget=2048ULL<<20;
+    wchar_t* end=nullptr;
+    // wcstoll saturates on overflow, so very large integers also clamp.
+    const auto mib=std::wcstoll(value.c_str(),&end,10);
+    if(end==value.c_str() || *end) return defaultBudget;
+    return static_cast<U64>(std::clamp(mib,120LL,4096LL))<<20;
+}
 
 // Segment allocation is serialized across game instances. Each open segment
 // reserves its full capacity so the hot write path needs no directory scan.
 class EvidenceLog {
     static constexpr DWORD segmentLimit=8*1024*1024;
-    static constexpr U64 directoryLimit=2ULL*1024*1024*1024;
+    U64 directoryLimit=0;
     static constexpr char shutdownLine[]="process-detach shutdown=true (not an exit-code assertion)\r\n";
     fs::path run;
     HANDLE file=INVALID_HANDLE_VALUE;
@@ -85,7 +95,10 @@ public:
     EvidenceLog(const EvidenceLog&)=delete;
     EvidenceLog& operator=(const EvidenceLog&)=delete;
 
-    void initialize(const fs::path& directory) { run=directory; }
+    void initialize(const fs::path& directory,const std::wstring& budget={}) {
+        run=directory;
+        directoryLimit=evidenceBudget(budget);
+    }
     void append(const std::string& line) noexcept {
         AcquireSRWLockExclusive(&lock);
         struct Unlock { SRWLOCK* lock; ~Unlock(){ ReleaseSRWLockExclusive(lock); } } unlock{&lock};

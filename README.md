@@ -25,6 +25,14 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 本仓库包含加载器源码、运行文件模板、SDK 和开发工具。玩家请从上方发布页面获取安装包；本地构建的玩家运行包位于 `releases/`，游戏安装目录只需保留运行文件。
 
+## 1.0.2：按运行次数保留日志
+
+加载器默认保留最近 10 次普通运行的日志。在 `mods.ini` 的 `[Loader]` 下设置 `LogRetentionRuns` 可调整次数。设为 `0` 并重启游戏即可停止写入新日志，已有日志会保留。
+
+## 1.0.1：日志容量限制
+
+加载器日志按 8 MiB 分段，默认总预算为 2 GiB。可在 mods.ini 的 [Loader] 下设置 LogDirectoryLimitMiB（120–4096 MiB）。升级时保留现有 mods.ini 和 mods 文件夹；旧配置无需修改。
+
 ## 1.0.0：首个正式发布版
 
 将原 0.3.7-preview 的打包内容作为 1.0.0 正式发布，后续发布不再默认使用 preview 后缀。
@@ -81,7 +89,7 @@ DLL 复制到实际 EXE 旁；不要解压默认 `version.dll` 覆盖其他 MOD�
 
 `build.ps1 -Test` 验证五种代理的静态加载、入口恢复、代表性 API 转发、并发调用、导出数量，
 以及重复入口与晚加载保护；原有 version 多布局、ABI 和游戏特征测试继续保留。
-`package.ps1` 默认生成正式版 `1.0.0`，检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
+`package.ps1` 默认生成正式版 `1.0.2`，检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
 
 ## 0.3.0-preview：平台无关引导
 
@@ -102,7 +110,7 @@ platform/wegame；WeGame 平台已通过加载器自动加载与 MOD 运行实�
 新增检查：
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.0
+.\package.ps1 -Version 1.0.2
 ```
 -GameExe 只读文件，不启动或修改游戏；该回归测试针对已知 Steam 基准文件，
 验证扫描结果、地址重排、ASLR、调用位移变化及歧义/损坏拒绝。
@@ -143,7 +151,7 @@ Steam 和 WeGame 首次安装均可直接解压到游戏根目录，合并同名
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.0
+.\package.ps1 -Version 1.0.2
 ```
 
 主工程和发布包均不预装 MOD；开发自己的 MOD 请使用上述独立模板。

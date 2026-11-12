@@ -24,6 +24,12 @@ To create your own mod, start with the [minimal TypeScript mod template](templat
 
 Install Node.js and npm on your development machine, then run `npm ci`, `npm run check`, and `npm run build` in your copy of the template. Edit `src/main.ts` to implement your mod. Copy the entire generated `dist/my-mod/` folder into the game's `ProjectPBZ/PBZModLoader/mods/` directory for automatic discovery. Players only need the loader and the built mod; development tools are not required.
 
+### Develop mods with AI
+
+Open this repository in Codex and invoke [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md), for example: “Use `$pbz-mod-dev` to build a TypeScript mod that logs the map only when it changes and supports hot reload.” The skill uses the template and SDK above to scaffold a project, look up APIs, build the mod, and diagnose loader logs.
+
+To use the skill in other projects, run `python scripts/package-mod-skill.py` from the checkout to create `build/skills/pbz-mod-dev.zip` with the template and SDK included. If a ZIP already exists at the default path, use `--output <new-path>` to write it to a new file. Extract the `pbz-mod-dev/` folder into `~/.codex/skills/` (or `$CODEX_HOME/skills/`) for personal use, or into the target project's `.agents/skills/`. Invoke `$pbz-mod-dev` in a new session.
+
 ### Technical approach
 
 - **Native proxy DLL bootstrap:** `version.dll` is the default entry point, with `hid.dll`, `winmm.dll`, `dsound.dll`, and `dxgi.dll` available as alternatives. Each proxy forwards system DLL exports and initializes the loader during game startup. Install only one entry point.

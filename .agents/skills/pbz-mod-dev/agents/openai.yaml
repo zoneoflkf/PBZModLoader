@@ -1,0 +1,4 @@
+interface:
+  display_name: "PBZ MOD Development"
+  short_description: "Build TypeScript mods for Phantom Blade Zero"
+  default_prompt: "Use $pbz-mod-dev to create a TypeScript MOD that logs the current map when it changes and supports hot reload."

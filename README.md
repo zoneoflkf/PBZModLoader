@@ -8,6 +8,14 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 **下载与发布页面：[Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
+### Windows 一键安装（1.0.3 起）
+
+1. **退出游戏**，将加载器主包 `PBZModLoader-…-win64.zip` 解压到下载文件夹等游戏目录之外的位置。
+2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它；找不到时，选择包含 `ProjectPBZ` 的游戏根目录。若同时装了 Steam 和 WeGame，要安装到 WeGame，可将 WeGame 游戏根目录拖到 `.cmd` 上。
+3. 看到「安装完成」后，从原游戏平台启动游戏。把下载的 MOD 文件夹放到 `ProjectPBZ/PBZModLoader/mods/`。
+
+也可只解出 `.cmd`，放在未解压的主包 ZIP 旁运行。安装器会保留现有 `mods.ini` 和 MOD，备份替换的文件到游戏根目录下的 `PBZModLoader-Backups/`。可识别的备用入口会原位更新；无法确定入口时会停止，请按包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
+
 ### MOD 开发模板
 
 **直接下载：[MOD 开发模板 ZIP（模板 0.2.0 / SDK 0.3.3）](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
@@ -15,6 +23,12 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 想制作自己的 MOD，可从 [TypeScript MOD 最小模板](templates/ts-mod/) 开始，详细步骤见 [模板开发说明](templates/ts-mod/README.md)。模板包含示例入口、构建脚本和游戏 API SDK，提供 UE / PuerTS 类型补全与严格类型检查；复制整个模板目录即可独立开发，无需编译加载器 C++ 工程。
 
 开发电脑安装 Node.js 和 npm 后，在模板副本中依次执行 `npm ci`、`npm run check`、`npm run build`。修改 `src/main.ts` 编写逻辑，将构建生成的 `dist/my-mod/` 整个文件夹放入游戏的 `ProjectPBZ/PBZModLoader/mods/`，即可由加载器自动发现。玩家只需安装加载器和构建后的 MOD，无需安装开发工具。
+
+### 用 AI 开发 MOD
+
+在本仓库打开 Codex，调用 [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md)，例如：「用 `$pbz-mod-dev` 做一个只在切图时记录地图名、支持热重载的 TypeScript MOD。」Skill 会复用上面的模板和 SDK，指导 AI 建立工程、查找 API、构建并排查加载日志。
+
+要在其他项目里使用，从仓库根目录运行 `python scripts/package-mod-skill.py`，生成内置模板与 SDK 的 `build/skills/pbz-mod-dev.zip`。如果默认路径已有 ZIP，可以用 `--output <新路径>` 指定新的输出文件。将 ZIP 里的 `pbz-mod-dev/` 解压到 Codex 用户技能目录 `~/.codex/skills/`（或 `$CODEX_HOME/skills/`），也可以解压到目标项目的 `.agents/skills/`。然后打开新会话调用 `$pbz-mod-dev`。
 
 ### 技术路线
 
@@ -89,7 +103,7 @@ DLL 复制到实际 EXE 旁；不要解压默认 `version.dll` 覆盖其他 MOD�
 
 `build.ps1 -Test` 验证五种代理的静态加载、入口恢复、代表性 API 转发、并发调用、导出数量，
 以及重复入口与晚加载保护；原有 version 多布局、ABI 和游戏特征测试继续保留。
-`package.ps1` 默认生成正式版 `1.0.2`，检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
+`package.ps1` 检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
 
 ## 0.3.0-preview：平台无关引导
 
@@ -110,7 +124,7 @@ platform/wegame；WeGame 平台已通过加载器自动加载与 MOD 运行实�
 新增检查：
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
 ```
 -GameExe 只读文件，不启动或修改游戏；该回归测试针对已知 Steam 基准文件，
 验证扫描结果、地址重排、ASLR、调用位移变化及歧义/损坏拒绝。
@@ -151,7 +165,8 @@ Steam 和 WeGame 首次安装均可直接解压到游戏根目录，合并同名
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
 ```
 
 主工程和发布包均不预装 MOD；开发自己的 MOD 请使用上述独立模板。

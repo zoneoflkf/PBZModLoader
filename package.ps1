@@ -1,7 +1,8 @@
-param([string]$Version='1.0.2')
+param([string]$Version='1.0.3')
 $ErrorActionPreference='Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+)?$') { throw 'Invalid release version' }
 $files=@(
+    'PBZModLoader-Install.cmd',
     'PBZModLoader-安装说明.txt',
     'ProjectPBZ/PBZModLoader/mods.ini',
     'ProjectPBZ/PBZModLoader/TOOLCHAIN-LICENSE.txt',

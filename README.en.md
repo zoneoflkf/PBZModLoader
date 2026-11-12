@@ -8,6 +8,14 @@ PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared en
 
 **Downloads and releases: [Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
+### One-click Windows install (1.0.3 and later)
+
+1. **Close the game** and extract the player ZIP (`PBZModLoader-…-win64.zip`) into a folder outside the game installation.
+2. **Double-click `PBZModLoader-Install.cmd`**. It uses the Steam install if it finds exactly one, or asks you to select the game folder containing `ProjectPBZ`. If both platforms are installed and you want WeGame, drag its game folder onto the `.cmd` file.
+3. Once the installer reports success, start the game from your platform client. Put downloaded mod folders in `ProjectPBZ/PBZModLoader/mods/`.
+
+You can also extract only the `.cmd` and run it next to the unopened player ZIP. The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` in the game folder. It updates a recognized alternative DLL in place. If it cannot identify the entry point, follow the manual instructions in `PBZModLoader-安装说明.txt`. Players do not need Node.js.
+
 ### Mod development template
 
 **Direct download: [Mod development template ZIP (template 0.2.0 / SDK 0.3.3)](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
@@ -15,6 +23,12 @@ PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared en
 To create your own mod, start with the [minimal TypeScript mod template](templates/ts-mod/). See the [template development guide](templates/ts-mod/README.md) (Chinese) for details. The template includes an example entry point, build scripts, and the game API SDK, with UE / PuerTS completion and strict type checking. Copy the entire template directory to develop independently; you do not need to compile the loader's C++ project.
 
 Install Node.js and npm on your development machine, then run `npm ci`, `npm run check`, and `npm run build` in your copy of the template. Edit `src/main.ts` to implement your mod. Copy the entire generated `dist/my-mod/` folder into the game's `ProjectPBZ/PBZModLoader/mods/` directory for automatic discovery. Players only need the loader and the built mod; development tools are not required.
+
+### Develop mods with AI
+
+Open this repository in Codex and invoke [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md), for example: “Use `$pbz-mod-dev` to build a TypeScript mod that logs the map only when it changes and supports hot reload.” The skill uses the template and SDK above to scaffold a project, look up APIs, build the mod, and diagnose loader logs.
+
+To use the skill in other projects, run `python scripts/package-mod-skill.py` from the checkout to create `build/skills/pbz-mod-dev.zip` with the template and SDK included. If a ZIP already exists at the default path, use `--output <new-path>` to write it to a new file. Extract the `pbz-mod-dev/` folder into `~/.codex/skills/` (or `$CODEX_HOME/skills/`) for personal use, or into the target project's `.agents/skills/`. Invoke `$pbz-mod-dev` in a new session.
 
 ### Technical approach
 
@@ -87,7 +101,7 @@ Additional checks:
 
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
 ```
 
 `-GameExe` reads the file without launching or modifying the game. This regression test targets known Steam baseline files and checks scan results, address rearrangement, ASLR, call-offset changes, and rejection of ambiguous or damaged data.
@@ -120,7 +134,8 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.

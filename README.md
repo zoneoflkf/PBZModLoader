@@ -8,6 +8,14 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 **下载与发布页面：[Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
+### Windows 一键安装（1.0.3 起）
+
+1. **退出游戏**，将加载器主包 `PBZModLoader-…-win64.zip` 解压到下载文件夹等游戏目录之外的位置。
+2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它；找不到时，选择包含 `ProjectPBZ` 的游戏根目录。若同时装了 Steam 和 WeGame，要安装到 WeGame，可将 WeGame 游戏根目录拖到 `.cmd` 上。
+3. 看到「安装完成」后，从原游戏平台启动游戏。把下载的 MOD 文件夹放到 `ProjectPBZ/PBZModLoader/mods/`。
+
+也可只解出 `.cmd`，放在未解压的主包 ZIP 旁运行。安装器会保留现有 `mods.ini` 和 MOD，备份替换的文件到游戏根目录下的 `PBZModLoader-Backups/`。可识别的备用入口会原位更新；无法确定入口时会停止，请按包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
+
 ### MOD 开发模板
 
 **直接下载：[MOD 开发模板 ZIP（模板 0.2.0 / SDK 0.3.3）](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
@@ -89,7 +97,7 @@ DLL 复制到实际 EXE 旁；不要解压默认 `version.dll` 覆盖其他 MOD�
 
 `build.ps1 -Test` 验证五种代理的静态加载、入口恢复、代表性 API 转发、并发调用、导出数量，
 以及重复入口与晚加载保护；原有 version 多布局、ABI 和游戏特征测试继续保留。
-`package.ps1` 默认生成正式版 `1.0.2`，检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
+`package.ps1` 检查全部五种 DLL、两个平台的默认入口、ZIP 白名单及解压哈希。
 
 ## 0.3.0-preview：平台无关引导
 
@@ -110,7 +118,7 @@ platform/wegame；WeGame 平台已通过加载器自动加载与 MOD 运行实�
 新增检查：
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
 ```
 -GameExe 只读文件，不启动或修改游戏；该回归测试针对已知 Steam 基准文件，
 验证扫描结果、地址重排、ASLR、调用位移变化及歧义/损坏拒绝。
@@ -151,7 +159,8 @@ Steam 和 WeGame 首次安装均可直接解压到游戏根目录，合并同名
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
 ```
 
 主工程和发布包均不预装 MOD；开发自己的 MOD 请使用上述独立模板。

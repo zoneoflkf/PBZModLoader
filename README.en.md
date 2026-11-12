@@ -8,6 +8,14 @@ PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared en
 
 **Downloads and releases: [Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
+### One-click Windows install (1.0.3 and later)
+
+1. **Close the game** and extract the player ZIP (`PBZModLoader-…-win64.zip`) into a folder outside the game installation.
+2. **Double-click `PBZModLoader-Install.cmd`**. It uses the Steam install if it finds exactly one, or asks you to select the game folder containing `ProjectPBZ`. If both platforms are installed and you want WeGame, drag its game folder onto the `.cmd` file.
+3. Once the installer reports success, start the game from your platform client. Put downloaded mod folders in `ProjectPBZ/PBZModLoader/mods/`.
+
+You can also extract only the `.cmd` and run it next to the unopened player ZIP. The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` in the game folder. It updates a recognized alternative DLL in place. If it cannot identify the entry point, follow the manual instructions in `PBZModLoader-安装说明.txt`. Players do not need Node.js.
+
 ### Mod development template
 
 **Direct download: [Mod development template ZIP (template 0.2.0 / SDK 0.3.3)](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
@@ -87,7 +95,7 @@ Additional checks:
 
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
 ```
 
 `-GameExe` reads the file without launching or modifying the game. This regression test targets known Steam baseline files and checks scan results, address rearrangement, ASLR, call-offset changes, and rejection of ambiguous or damaged data.
@@ -120,7 +128,8 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.2
+.\package.ps1 -Version 1.0.3
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.

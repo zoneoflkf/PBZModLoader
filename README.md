@@ -26,9 +26,9 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 ### 用 AI 开发 MOD
 
-在本仓库打开 Codex，调用 [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md)，例如：「用 `$pbz-mod-dev` 做一个只在切图时记录地图名、支持热重载的 TypeScript MOD。」Skill 会复用上面的模板和 SDK，指导 AI 建立工程、查找 API、构建并排查加载日志。
+可按需安装 [`pbz-mod-dev`](templates/skills/pbz-mod-dev/SKILL.md) 技能，使用上面的模板和 SDK 建立工程、查找 API、构建 MOD 并排查加载日志。
 
-要在其他项目里使用，从仓库根目录运行 `python scripts/package-mod-skill.py`，生成内置模板与 SDK 的 `build/skills/pbz-mod-dev.zip`。如果默认路径已有 ZIP，可以用 `--output <新路径>` 指定新的输出文件。将 ZIP 里的 `pbz-mod-dev/` 解压到 Codex 用户技能目录 `~/.codex/skills/`（或 `$CODEX_HOME/skills/`），也可以解压到目标项目的 `.agents/skills/`。然后打开新会话调用 `$pbz-mod-dev`。
+从仓库根目录运行 `python scripts/package-mod-skill.py`，生成内置模板与 SDK 的 `build/skills/pbz-mod-dev.zip`。如果默认路径已有 ZIP，可以用 `--output <新路径>` 指定新的输出文件。将 ZIP 里的 `pbz-mod-dev/` 解压到目标项目的 `.agents/skills/`，也可以解压到 Codex 用户技能目录 `~/.codex/skills/`（或 `$CODEX_HOME/skills/`）。然后打开新会话调用 `$pbz-mod-dev`，例如「用 `$pbz-mod-dev` 做一个只在切图时记录地图名、支持热重载的 TypeScript MOD。」
 
 ### 技术路线
 

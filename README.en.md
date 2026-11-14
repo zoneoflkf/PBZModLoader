@@ -8,13 +8,15 @@ PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared en
 
 **Downloads and releases: [Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
-### One-click Windows install (1.0.3 and later)
+### One-click Windows install (standalone installer)
 
-1. **Close the game** and extract the player ZIP (`PBZModLoader-…-win64.zip`) into a folder outside the game installation.
-2. **Double-click `PBZModLoader-Install.cmd`**. It uses the Steam install if it finds exactly one, or asks you to select the game folder containing `ProjectPBZ`. If both platforms are installed and you want WeGame, drag its game folder onto the `.cmd` file.
-3. Once the installer reports success, start the game from your platform client. Put downloaded mod folders in `ProjectPBZ/PBZModLoader/mods/`.
+1. **Close the game** and extract `PBZModLoader-Installer-…zip` to a folder outside the game installation. Put the unopened player ZIP (`PBZModLoader-…-win64.zip`) beside `PBZModLoader-Install.cmd`.
+2. **Double-click `PBZModLoader-Install.cmd`.** It uses the Steam install if it finds exactly one. If prompted, select the game root containing both `ProjectPBZ` and `platform`. To target a specific installation, drag its game root onto the `.cmd` file.
+3. The installer places the entry DLL beside `PBZ.exe` in `platform/steam/` or `platform/wegame/` and creates `ProjectPBZ/PBZModLoader/mods/` under the game root. Once it reports success, start the game from your platform client.
 
-You can also extract only the `.cmd` and run it next to the unopened player ZIP. The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` in the game folder. It updates a recognized alternative DLL in place. If it cannot identify the entry point, follow the manual instructions in `PBZModLoader-安装说明.txt`. Players do not need Node.js.
+When the installer is updated on its own, you can reuse your existing player ZIP. You can also extract the full player ZIP outside the game and copy the new `PBZModLoader-Install.cmd` into that folder before running it.
+
+The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` under the game root. If it finds multiple confirmed loader entries, enter the number of the one to keep and update. The installer moves the other confirmed entries to the backup folder. If it finds only unrecognized DLLs, see `PBZModLoader-安装说明.txt` in the player ZIP. Players do not need Node.js.
 
 ### Mod development template
 
@@ -134,8 +136,14 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.3
-.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
+.\package.ps1 -Version '1.0.3'
+```
+
+Use the intended loader release version when packaging the player ZIP. To package the installer separately, reuse an existing player ZIP and its manifest.
+
+```powershell
+.\package-installer.ps1 -Version 1.0.0
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.

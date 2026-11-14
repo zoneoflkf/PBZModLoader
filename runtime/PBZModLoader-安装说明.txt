@@ -1,15 +1,12 @@
 PBZModLoader 安装说明
 
-Windows 一键安装或升级
+Windows 一键安装可使用 Nexus Mods 下载页上的独立安装器 PBZModLoader-Installer。
+将安装器解压到游戏目录之外，将玩家主包 ZIP 放在 PBZModLoader-Install.cmd 旁，再运行脚本。
+详细步骤见安装器 ZIP 中的 PBZModLoader-Installer-README.txt。
 
-1. 退出游戏，把本 ZIP 完整解压到游戏目录之外（例如下载文件夹）。
-2. 双击 PBZModLoader-Install.cmd。脚本自动查找 Steam 游戏；找不到时会让你选择游戏根目录（能看到 ProjectPBZ 的位置）。
-   如果电脑上同时有 Steam 和 WeGame 版，要安装到 WeGame，请把 WeGame 游戏根目录拖到 .cmd 上。
-3. 出现「安装完成」后，从原游戏平台启动。MOD 放到 ProjectPBZ\PBZModLoader\mods。
-
-也可只解出 PBZModLoader-Install.cmd，与未解压的主包 ZIP 放在同一目录再双击。
-升级保留已有 mods.ini 和 mods/；被替换的文件备份到游戏根目录下的 PBZModLoader-Backups。
-脚本识别已知的备用入口并原位升级；遇到来源不明的入口且无法识别已装的加载器时，按下方说明手动安装。
+For one-click Windows installation, download PBZModLoader-Installer from the Nexus Mods Files tab.
+Extract the installer outside the game folder, place the player ZIP beside PBZModLoader-Install.cmd,
+and run the script. See PBZModLoader-Installer-README.txt inside the installer ZIP.
 
 手动安装
 

@@ -8,13 +8,15 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 **下载与发布页面：[Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
 
-### Windows 一键安装（1.0.3 起）
+### Windows 一键安装（独立安装器）
 
-1. **退出游戏**，将加载器主包 `PBZModLoader-…-win64.zip` 解压到下载文件夹等游戏目录之外的位置。
-2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它；找不到时，选择包含 `ProjectPBZ` 的游戏根目录。若同时装了 Steam 和 WeGame，要安装到 WeGame，可将 WeGame 游戏根目录拖到 `.cmd` 上。
-3. 看到「安装完成」后，从原游戏平台启动游戏。把下载的 MOD 文件夹放到 `ProjectPBZ/PBZModLoader/mods/`。
+1. **退出游戏**，将独立安装器 `PBZModLoader-Installer-…zip` 解压到游戏目录之外，并把未解压的加载器主包 `PBZModLoader-…-win64.zip` 放到 `PBZModLoader-Install.cmd` 旁。
+2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它，否则请选同时包含 `ProjectPBZ` 和 `platform` 的游戏根目录。也可把游戏根目录拖到 `.cmd` 上来指定安装位置。
+3. 安装器把入口 DLL 放到 `PBZ.exe` 旁（`platform/steam/` 或 `platform/wegame/`），并在游戏根目录下创建 `ProjectPBZ/PBZModLoader/mods/`。看到「安装完成」后，从原游戏平台启动游戏。
 
-也可只解出 `.cmd`，放在未解压的主包 ZIP 旁运行。安装器会保留现有 `mods.ini` 和 MOD，备份替换的文件到游戏根目录下的 `PBZModLoader-Backups/`。可识别的备用入口会原位更新；无法确定入口时会停止，请按包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
+安装器单独更新时，可以继续使用手上的玩家主包。如果手上的主包已经有 `PBZModLoader-Install.cmd`，也可以将完整主包解压到游戏目录之外，再把新版脚本复制到解压目录运行。
+
+安装器保留现有 `mods.ini` 和 MOD，并将替换的文件备份到游戏根目录下的 `PBZModLoader-Backups/`。若发现多个已确认的加载器入口，输入编号选择要保留并升级的 DLL，其余已确认的入口会移入备份。若只发现来源不明的 DLL，请参照玩家主包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
 
 ### MOD 开发模板
 
@@ -165,8 +167,14 @@ Steam 和 WeGame 首次安装均可直接解压到游戏根目录，合并同名
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.3
-.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
+.\package.ps1 -Version '1.0.3'
+```
+
+玩家包的版本号用本次拟发布的加载器版本。单独打包安装器时可复用已有的玩家 ZIP 和清单。
+
+```powershell
+.\package-installer.ps1 -Version 1.0.0
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
 ```
 
 主工程和发布包均不预装 MOD；开发自己的 MOD 请使用上述独立模板。

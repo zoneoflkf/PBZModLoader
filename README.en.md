@@ -6,7 +6,7 @@
 
 PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared entry point for script mods, JavaScript / TypeScript development templates, and a game API type declaration SDK. It supports automatic mod discovery, enabling and disabling mods through configuration, and **Alt+F5 hot reload** for mods that implement the cleanup lifecycle.
 
-**Downloads and releases: [Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
+**Current loader version: 1.0.4 · [Download on Nexus Mods](https://www.nexusmods.com/phantombladezero/mods/113?tab=files)**
 
 ### One-click Windows install (standalone installer)
 

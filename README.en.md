@@ -10,6 +10,8 @@ PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared en
 
 ### One-click Windows install (standalone installer)
 
+The main player ZIP includes a manual installation guide and does not contain the one-click script. For one-click setup, download the standalone installer from **Optional files** on the [Files tab](https://www.nexusmods.com/phantombladezero/mods/113?tab=files).
+
 1. **Close the game** and extract `PBZModLoader-Installer-…zip` to a folder outside the game installation. Put the unopened player ZIP (`PBZModLoader-…-win64.zip`) beside `PBZModLoader-Install.cmd`.
 2. **Double-click `PBZModLoader-Install.cmd`.** It uses the Steam install if it finds exactly one. If prompted, select the game root containing both `ProjectPBZ` and `platform`. To target a specific installation, drag its game root onto the `.cmd` file.
 3. The installer places the entry DLL beside `PBZ.exe` in `platform/steam/` or `platform/wegame/` and creates `ProjectPBZ/PBZModLoader/mods/` under the game root. Once it reports success, start the game from your platform client.
@@ -89,7 +91,7 @@ The four alternative entry points passed startup validation on the Steam build t
 
 Builds use fixed export lists in `src/version.def` and `src/proxies/*.def`. `scripts/generate-proxies.cjs` generates five sets of configurations and forwarding stubs without reading the build machine's System32 directory. Named exports are forwarded by name where possible; NONAME exports use ordinals. System functions are resolved on demand, so missing optional interfaces that are never used do not prevent startup. Calling an unavailable interface on an unknown system fails fast. These lists come from the exports observed on the locally tested system and do not guarantee undocumented ordinal ABIs across all historical Windows versions. Only proxies loaded statically during startup install the executable entry hook; proxies loaded through LoadLibrary at runtime only forward functions.
 
-`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` defaults to stable version `1.0.2` and checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
+`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
 
 ## 0.3.0-preview: Platform-independent bootstrap
 
@@ -103,7 +105,7 @@ Additional checks:
 
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.3
+.\package.ps1 -Version 1.0.4
 ```
 
 `-GameExe` reads the file without launching or modifying the game. This regression test targets known Steam baseline files and checks scan results, address rearrangement, ASLR, call-offset changes, and rejection of ambiguous or damaged data.
@@ -136,14 +138,14 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version '1.0.3'
+.\package.ps1 -Version '<loader-version>'
 ```
 
-Use the intended loader release version when packaging the player ZIP. To package the installer separately, reuse an existing player ZIP and its manifest.
+Replace `<loader-version>` with the intended release version. The player ZIP includes the manual installation guide. `package-installer.ps1` packages the one-click installer and its README in a separate ZIP that works with an existing player ZIP.
 
 ```powershell
 .\package-installer.ps1 -Version 1.0.0
-.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.4-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.

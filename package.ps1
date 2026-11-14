@@ -1,6 +1,7 @@
-param([string]$Version='1.0.3')
+param([string]$Version='1.0.4')
 $ErrorActionPreference='Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+)?$') { throw 'Invalid release version' }
+# The standalone installer and its README are packaged by package-installer.ps1.
 $files=@(
     'PBZModLoader-安装说明.txt',
     'ProjectPBZ/PBZModLoader/mods.ini',
@@ -9,6 +10,10 @@ $files=@(
     'ProjectPBZ/Content/JavaScript/PBZModLoader/manager.js'
 )
 $files += @(Get-ChildItem "$PSScriptRoot/runtime/ProjectPBZ/PBZModLoader/compiler" -File | ForEach-Object { 'ProjectPBZ/PBZModLoader/compiler/'+$_.Name })
+$installerFiles = 'PBZModLoader-Install.cmd', 'PBZModLoader-Installer-README.txt'
+foreach ($relative in $files) {
+    if ((Split-Path -Leaf $relative) -in $installerFiles) { throw "Standalone installer file is not allowed in the player ZIP: $relative" }
+}
 if (!($files -contains 'ProjectPBZ/PBZModLoader/compiler/tsc.exe')) { throw 'Build bundled compiler first.' }
 $release=Join-Path $PSScriptRoot "releases/PBZModLoader-$Version-win64"
 $zip="$release.zip"

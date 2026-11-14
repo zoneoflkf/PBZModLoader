@@ -43,6 +43,16 @@ Run `python scripts/package-mod-skill.py` from the repository root to create `bu
 
 This repository contains loader source code, runtime file templates, the SDK, and development tools. Players should download an installation package from the release page above. Locally built player packages are placed in `releases/`; only runtime files belong in the game installation directory.
 
+## 1.0.4: Configurable mod hot reload shortcut
+
+The default hot reload shortcut is still **Alt+F5**. To change it, set `ReloadHotkey=Ctrl+Shift+F8` (for example) under `[Loader]` in `ProjectPBZ/PBZModLoader/mods.ini`. Saving the file applies the change while the game is running. Close the game before upgrading and keep your `mods.ini` and `mods/`.
+
+Starting with this release, the main player ZIP ships with manual installation instructions. For one-click installation and upgrades, use the standalone Windows installer described above.
+
+## 1.0.3: One-click Windows installation and upgrades
+
+Introduced one-click installation and upgrades on Windows. The installer can detect Steam installations, and WeGame players can select the game folder manually. Upgrades preserve `mods.ini` and `mods/` and back up replaced files.
+
 ## 1.0.2: Log retention by run count
 
 The loader keeps logs from the latest 10 ordinary runs by default. To change the number of runs, set `LogRetentionRuns` under `[Loader]` in `mods.ini`. Set it to `0` and restart the game to stop writing new logs and keep existing logs.

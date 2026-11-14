@@ -43,6 +43,16 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 本仓库包含加载器源码、运行文件模板、SDK 和开发工具。玩家请从上方发布页面获取安装包；本地构建的玩家运行包位于 `releases/`，游戏安装目录只需保留运行文件。
 
+## 1.0.4：自定义 MOD 热重载键
+
+默认热重载键仍为 **Alt+F5**。在 `ProjectPBZ/PBZModLoader/mods.ini` 的 `[Loader]` 段设置 `ReloadHotkey=Ctrl+Shift+F8`（示例），在游戏运行中保存配置即可生效。升级前退出游戏，保留 `mods.ini` 和 `mods/`。
+
+从本版起，玩家主包提供手动安装说明。一键安装与升级请使用独立的 Windows 安装器，详见上方安装步骤。
+
+## 1.0.3：Windows 一键安装与升级
+
+首次加入 Windows 一键安装与升级。安装器可自动定位 Steam 安装，WeGame 可手动选择游戏根目录。升级保留 `mods.ini` 和 `mods/`，并备份被替换的文件。
+
 ## 1.0.2：按运行次数保留日志
 
 加载器默认保留最近 10 次普通运行的日志。在 `mods.ini` 的 `[Loader]` 下设置 `LogRetentionRuns` 可调整次数。设为 `0` 并重启游戏即可停止写入新日志，已有日志会保留。

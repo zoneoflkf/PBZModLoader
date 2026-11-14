@@ -6,11 +6,11 @@
 
 PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared entry point for script mods, JavaScript / TypeScript development templates, and a game API type declaration SDK. It supports automatic mod discovery, enabling and disabling mods through configuration, and **Alt+F5 hot reload** for mods that implement the cleanup lifecycle.
 
-**Current loader version: 1.0.4 · [Download on Nexus Mods](https://www.nexusmods.com/phantombladezero/mods/113?tab=files)**
+**Current loader version: 1.0.4 · [Download on Nexus Mods](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) · [Download on GitHub](https://github.com/zoneoflkf/PBZModLoader/releases/tag/v1.0.4)**
 
 ### One-click Windows install (standalone installer)
 
-The main player ZIP includes a manual installation guide and does not contain the one-click script. For one-click setup, download the standalone installer from **Optional files** on the [Files tab](https://www.nexusmods.com/phantombladezero/mods/113?tab=files).
+The main player ZIP includes a manual installation guide and does not contain the one-click script. For one-click setup, get the standalone installer from [Optional files on Nexus Mods](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) or [download the ZIP from GitHub](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.4/PBZModLoader-Installer-1.0.0.zip).
 
 1. **Close the game** and extract `PBZModLoader-Installer-…zip` to a folder outside the game installation. Put the unopened player ZIP (`PBZModLoader-…-win64.zip`) beside `PBZModLoader-Install.cmd`.
 2. **Double-click `PBZModLoader-Install.cmd`.** It uses the Steam install if it finds exactly one. If prompted, select the game root containing both `ProjectPBZ` and `platform`. To target a specific installation, drag its game root onto the `.cmd` file.
@@ -22,7 +22,7 @@ The installer keeps your existing `mods.ini` and mods, and saves replaced files 
 
 ### Mod development template
 
-**Direct download: [Mod development template ZIP (template 0.2.0 / SDK 0.3.3)](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
+**Direct download: [Mod development template ZIP (template 0.2.0 / SDK 0.3.3)](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.4/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
 
 To create your own mod, start with the [minimal TypeScript mod template](templates/ts-mod/). See the [template development guide](templates/ts-mod/README.md) (Chinese) for details. The template includes an example entry point, build scripts, and the game API SDK, with UE / PuerTS completion and strict type checking. Copy the entire template directory to develop independently; you do not need to compile the loader's C++ project.
 

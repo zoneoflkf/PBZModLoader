@@ -1,6 +1,7 @@
 // Exercise the actual machine-code generators in an isolated native process.
 #include "../src/core.hpp"
 #include "../src/mod-validation.hpp"
+#include "../src/reload-hotkey.hpp"
 #include <thread>
 #include <cassert>
 struct FString { const wchar_t* data; int count; int capacity; };
@@ -105,6 +106,48 @@ int main() {
     iniTest("[Loader]\nVersion=1\nCount=2\n[Mod.0]\nId=a\nEnabled=1\nEntry=mods/a/main.js\n[Mod.1]\nId=a\nEnabled=0\nEntry=mods/a/main.js\n",false);
     const std::string automatic="[Loader]\nVersion=1\n";
     iniTest(automatic,true);
+    const auto hotkeyPath=temp/L"mods.ini";
+    auto expectHotkey=[&](UINT modifiers,UINT key,bool invalid=false) {
+        const auto hotkey=readReloadHotkey(hotkeyPath);
+        assert(hotkey && hotkey->modifiers==modifiers && hotkey->key==key && hotkey->invalid==invalid);
+        assert(hotkey->matches(MAKELPARAM(modifiers,key)));
+    };
+    expectHotkey(MOD_ALT,VK_F5);
+    iniTest(automatic+"ReloadHotkey=ctrl + shift + f8\n",true);
+    expectHotkey(MOD_CONTROL|MOD_SHIFT,VK_F8);
+    iniTest(automatic+"ReloadHotkey=F24\n",true);
+    expectHotkey(0,VK_F24);
+    iniTest(automatic+"ReloadHotkey=Alt+r\n",true);
+    expectHotkey(MOD_ALT,'R');
+    iniTest(automatic+"ReloadHotkey=Ctrl+0\n",true);
+    expectHotkey(MOD_CONTROL,'0');
+    iniTest(automatic+"ReloadHotkey=\n",true);
+    expectHotkey(MOD_ALT,VK_F5);
+    for(const auto* value:{"Ctrl+", "Ctrl++F8", "Ctrl+ctrl+F8", "F8+Shift", "Win+F8", "F12", "F25"}) {
+        iniTest(automatic+"ReloadHotkey="+value+"\n",true);
+        expectHotkey(MOD_ALT,VK_F5,true);
+    }
+    iniTest(automatic+"ReloadHotkey="+std::string(5000,'x')+"\n",true);
+    expectHotkey(MOD_ALT,VK_F5,true);
+    // Exercise in-place and atomic saves without flushing the Windows INI cache.
+    { std::ofstream f(hotkeyPath); f<<automatic<<"ReloadHotkey=Ctrl+F8\n"; }
+    expectHotkey(MOD_CONTROL,VK_F8);
+    {
+        Handle writer(CreateFileW(hotkeyPath.c_str(),GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,
+            nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
+        assert(writer.h!=INVALID_HANDLE_VALUE);
+        assert(!readReloadHotkey(hotkeyPath));
+    }
+    const auto replacement=temp/L"mods.ini.tmp";
+    { std::ofstream f(replacement); f<<automatic<<"ReloadHotkey=Ctrl+F9\n"; }
+    assert(MoveFileExW(replacement.c_str(),hotkeyPath.c_str(),MOVEFILE_REPLACE_EXISTING));
+    expectHotkey(MOD_CONTROL,VK_F9);
+    assert(!readReloadHotkey(hotkeyPath)->matches(MAKELPARAM(MOD_CONTROL,VK_F8)));
+    assert(!readReloadHotkey(hotkeyPath)->matches(MAKELPARAM(MOD_ALT,VK_F9)));
+    { std::ofstream f(hotkeyPath); f<<automatic; }
+    expectHotkey(MOD_ALT,VK_F5);
+    iniTest(automatic,true);
+    std::cout<<"PASS reload hotkey: INI defaults, custom keys, modifiers and invalid-value fallback\n";
     assert(config(temp).find("\"id\":\"a\",\"enabled\":true")!=std::string::npos);
     fs::create_directories(temp/L"mods/z");
     fs::create_directories(temp/L"mods/helper/nested");

@@ -6,15 +6,19 @@
 
 PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，为玩家提供统一的脚本 MOD 加载入口，也为开发者提供 JavaScript / TypeScript 开发模板和游戏 API 类型声明 SDK。支持自动发现 MOD、配置启用或禁用，以及通过 `Alt+F5` 热重载支持清理生命周期的 MOD。
 
-**下载与发布页面：[Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
+**当前加载器版本：1.0.4 · [Nexus Mods 下载](https://www.nexusmods.com/phantombladezero/mods/113?tab=files)**
 
-### Windows 一键安装（1.0.3 起）
+### Windows 一键安装（独立安装器）
 
-1. **退出游戏**，将加载器主包 `PBZModLoader-…-win64.zip` 解压到下载文件夹等游戏目录之外的位置。
-2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它；找不到时，选择包含 `ProjectPBZ` 的游戏根目录。若同时装了 Steam 和 WeGame，要安装到 WeGame，可将 WeGame 游戏根目录拖到 `.cmd` 上。
-3. 看到「安装完成」后，从原游戏平台启动游戏。把下载的 MOD 文件夹放到 `ProjectPBZ/PBZModLoader/mods/`。
+加载器主包提供手动安装说明，不含一键安装脚本。一键安装需从 [Files](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) 的 **Optional files** 另行下载独立安装器。
 
-也可只解出 `.cmd`，放在未解压的主包 ZIP 旁运行。安装器会保留现有 `mods.ini` 和 MOD，备份替换的文件到游戏根目录下的 `PBZModLoader-Backups/`。可识别的备用入口会原位更新；无法确定入口时会停止，请按包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
+1. **退出游戏**，将独立安装器 `PBZModLoader-Installer-…zip` 解压到游戏目录之外，并把未解压的加载器主包 `PBZModLoader-…-win64.zip` 放到 `PBZModLoader-Install.cmd` 旁。
+2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它，否则请选同时包含 `ProjectPBZ` 和 `platform` 的游戏根目录。也可把游戏根目录拖到 `.cmd` 上来指定安装位置。
+3. 安装器把入口 DLL 放到 `PBZ.exe` 旁（`platform/steam/` 或 `platform/wegame/`），并在游戏根目录下创建 `ProjectPBZ/PBZModLoader/mods/`。看到「安装完成」后，从原游戏平台启动游戏。
+
+安装器单独更新时，可以继续使用手上的玩家主包。也可以将完整主包解压到游戏目录之外，再把独立安装器中的 `PBZModLoader-Install.cmd` 复制到解压目录运行。
+
+安装器保留现有 `mods.ini` 和 MOD，并将替换的文件备份到游戏根目录下的 `PBZModLoader-Backups/`。若发现多个已确认的加载器入口，输入编号选择要保留并升级的 DLL，其余已确认的入口会移入备份。若只发现来源不明的 DLL，请参照玩家主包内的 `PBZModLoader-安装说明.txt` 手动安装。玩家无需安装 Node.js。
 
 ### MOD 开发模板
 
@@ -26,9 +30,9 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 ### 用 AI 开发 MOD
 
-在本仓库打开 Codex，调用 [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md)，例如：「用 `$pbz-mod-dev` 做一个只在切图时记录地图名、支持热重载的 TypeScript MOD。」Skill 会复用上面的模板和 SDK，指导 AI 建立工程、查找 API、构建并排查加载日志。
+可按需安装 [`pbz-mod-dev`](templates/skills/pbz-mod-dev/SKILL.md) 技能，使用上面的模板和 SDK 建立工程、查找 API、构建 MOD 并排查加载日志。
 
-要在其他项目里使用，从仓库根目录运行 `python scripts/package-mod-skill.py`，生成内置模板与 SDK 的 `build/skills/pbz-mod-dev.zip`。如果默认路径已有 ZIP，可以用 `--output <新路径>` 指定新的输出文件。将 ZIP 里的 `pbz-mod-dev/` 解压到 Codex 用户技能目录 `~/.codex/skills/`（或 `$CODEX_HOME/skills/`），也可以解压到目标项目的 `.agents/skills/`。然后打开新会话调用 `$pbz-mod-dev`。
+从仓库根目录运行 `python scripts/package-mod-skill.py`，生成内置模板与 SDK 的 `build/skills/pbz-mod-dev.zip`。如果默认路径已有 ZIP，可以用 `--output <新路径>` 指定新的输出文件。将 ZIP 里的 `pbz-mod-dev/` 解压到目标项目的 `.agents/skills/`，也可以解压到 Codex 用户技能目录 `~/.codex/skills/`（或 `$CODEX_HOME/skills/`）。然后打开新会话调用 `$pbz-mod-dev`，例如「用 `$pbz-mod-dev` 做一个只在切图时记录地图名、支持热重载的 TypeScript MOD。」
 
 ### 技术路线
 
@@ -124,7 +128,7 @@ platform/wegame；WeGame 平台已通过加载器自动加载与 MOD 运行实�
 新增检查：
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.3
+.\package.ps1 -Version 1.0.4
 ```
 -GameExe 只读文件，不启动或修改游戏；该回归测试针对已知 Steam 基准文件，
 验证扫描结果、地址重排、ASLR、调用位移变化及歧义/损坏拒绝。
@@ -165,8 +169,14 @@ Steam 和 WeGame 首次安装均可直接解压到游戏根目录，合并同名
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.3
-.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
+.\package.ps1 -Version '<加载器版本>'
+```
+
+打包时将 `<加载器版本>` 替换为本次拟发布的版本。玩家主包保留手动安装说明。一键安装脚本和安装器说明由 `package-installer.ps1` 打成独立 ZIP，可搭配已有的玩家主包。
+
+```powershell
+.\package-installer.ps1 -Version 1.0.0
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.4-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
 ```
 
 主工程和发布包均不预装 MOD；开发自己的 MOD 请使用上述独立模板。
@@ -178,7 +188,7 @@ npm ci
 旧版带 Mods 层的目录需整体上移到 ProjectPBZ/PBZModLoader，并同步更新 DLL；
 具体迁移步骤见安装说明，mods.ini 中的 Entry 无需修改。
 启动时 DLL 校验配置，将 mods/ 同步到 Content/JavaScript/PBZModLoader/generated-mods，
-供原有 PuerTS 搜索路径加载；该缓存每次启动重建，不应直接编辑。运行中按 Alt+F5 可触发热重载，详见下文。
+供原有 PuerTS 搜索路径加载；该缓存每次启动重建，不应直接编辑。运行中默认按 Alt+F5 触发热重载，详见下文。
 Content/JavaScript 下只需随包安装 bootstrap.js 和 manager.js，MOD 源文件无需放在那里。
 原生编译输出 build 下的 version.dll、hid.dll、winmm.dll、dsound.dll、dxgi.dll。
 -VerifyOnly -Test 可检查已有 DLL 而不重新编译它们。
@@ -206,10 +216,12 @@ package.ps1 拒绝覆盖已有版本，并检查 ZIP 根目录、白名单及解
 
 ### MOD 热重载
 
-安装新版 DLL、bootstrap.js 和 manager.js 并启动游戏后，保存 `ProjectPBZ/PBZModLoader/mods/` 下的 JS/TS 或依赖文件，切回游戏按 **Alt+F5**。仅游戏窗口在前台时响应，按住不连发，不监听文件变化。JS 线程每秒接收一次重载请求，TS 会先编译。本地构建的 MOD 需先把新产物覆盖到安装目录。完成后左上角显示约 4 秒提示，区分成功、失败或跳过；提示不拦截鼠标。
+安装新版 DLL、bootstrap.js 和 manager.js 并启动游戏后，保存 `ProjectPBZ/PBZModLoader/mods/` 下的 JS/TS 或依赖文件，切回游戏按热重载键（默认 **Alt+F5**）。仅游戏窗口在前台时响应，按住不连发，不监听文件变化。JS 线程每秒接收一次重载请求，TS 会先编译。本地构建的 MOD 需先把新产物覆盖到安装目录。完成后左上角显示约 4 秒提示，区分成功、失败或跳过；提示不拦截鼠标。
+
+要改键，在 `ProjectPBZ/PBZModLoader/mods.ini` 的 `[Loader]` 段设置 `ReloadHotkey=Ctrl+Shift+F8`（示例）。保存后加载器会在游戏运行中自动切换键位。支持 `Ctrl`、`Alt`、`Shift` 任意组合或单键，主键可选 `A–Z`、`0–9` 或 `F1–F24`（`F12` 为 Windows 调试保留键），键名不区分大小写。缺省、留空或格式无效时使用 Alt+F5。注册失败时可在 `loader.log` 查看所用键位和错误码。
 
 每次快捷键重载整组 MOD（包括未修改的 MOD），以独立版本目录隔离 CommonJS 入口及相对依赖缓存。加载新入口前，先调用并等待所有旧实例导出的 `stop()`，支持 Promise；MOD 须在其中清除定时器、取消事件订阅并释放持有的资源。无持久资源的 MOD 也应导出空 `stop()`。缺少该函数或清理抛错时保留旧实例并跳过该 MOD，新版本不会重复注册。挂起的 stop 会等待其完成，期间不会启动另一轮重载。切图和游戏退出不触发 stop。
 
-新增、删除及 `[Mods] ID=0` 的变化按 Alt+F5 后同样生效；删除或禁用前也会调用 stop。TS 编译失败时保留旧实例并显示失败提示，修复后再次按 Alt+F5 重试。请保存完成后再触发重载，编译期间避免继续改写文件。JS 入口执行异常可能已经产生副作用且无法取得其导出，因此失败实例在本次游戏运行中不再自动重试，修复后需重启。MOD 应自行清理初始化失败前产生的资源。
+新增、删除及 `[Mods] ID=0` 的变化在热重载后同样生效；删除或禁用前也会调用 stop。TS 编译失败时保留旧实例并显示失败提示，修复后可再次触发热重载。请保存完成后再触发重载，编译期间避免继续改写文件。JS 入口执行异常可能已经产生副作用且无法取得其导出，因此失败实例在本次游戏运行中不再自动重试，修复后需重启。MOD 应自行清理初始化失败前产生的资源。
 
 临时产物在 `Content/JavaScript/PBZModLoader/generated-reloads/`，版本目录保留至下一次启动清理，以支持旧实例和延迟 require；长时间大量重载会增加磁盘和模块缓存占用。仅 MOD 目录内的相对依赖随版本隔离，勿用加载器缓存绝对路径跨版本引用。日志查找 `hot reload published`、`stopped`、`reload complete` 和 `reload blocked`。

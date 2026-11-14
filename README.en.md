@@ -6,15 +6,19 @@
 
 PBZModLoader is a mod loader for **Phantom Blade Zero**. It provides a shared entry point for script mods, JavaScript / TypeScript development templates, and a game API type declaration SDK. It supports automatic mod discovery, enabling and disabling mods through configuration, and **Alt+F5 hot reload** for mods that implement the cleanup lifecycle.
 
-**Downloads and releases: [Nexus Mods · PBZModLoader](https://www.nexusmods.com/phantombladezero/mods/113)**
+**Current loader version: 1.0.4 · [Download on Nexus Mods](https://www.nexusmods.com/phantombladezero/mods/113?tab=files)**
 
-### One-click Windows install (1.0.3 and later)
+### One-click Windows install (standalone installer)
 
-1. **Close the game** and extract the player ZIP (`PBZModLoader-…-win64.zip`) into a folder outside the game installation.
-2. **Double-click `PBZModLoader-Install.cmd`**. It uses the Steam install if it finds exactly one, or asks you to select the game folder containing `ProjectPBZ`. If both platforms are installed and you want WeGame, drag its game folder onto the `.cmd` file.
-3. Once the installer reports success, start the game from your platform client. Put downloaded mod folders in `ProjectPBZ/PBZModLoader/mods/`.
+The main player ZIP includes a manual installation guide and does not contain the one-click script. For one-click setup, download the standalone installer from **Optional files** on the [Files tab](https://www.nexusmods.com/phantombladezero/mods/113?tab=files).
 
-You can also extract only the `.cmd` and run it next to the unopened player ZIP. The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` in the game folder. It updates a recognized alternative DLL in place. If it cannot identify the entry point, follow the manual instructions in `PBZModLoader-安装说明.txt`. Players do not need Node.js.
+1. **Close the game** and extract `PBZModLoader-Installer-…zip` to a folder outside the game installation. Put the unopened player ZIP (`PBZModLoader-…-win64.zip`) beside `PBZModLoader-Install.cmd`.
+2. **Double-click `PBZModLoader-Install.cmd`.** It uses the Steam install if it finds exactly one. If prompted, select the game root containing both `ProjectPBZ` and `platform`. To target a specific installation, drag its game root onto the `.cmd` file.
+3. The installer places the entry DLL beside `PBZ.exe` in `platform/steam/` or `platform/wegame/` and creates `ProjectPBZ/PBZModLoader/mods/` under the game root. Once it reports success, start the game from your platform client.
+
+When the installer is updated on its own, you can reuse your existing player ZIP. You can also extract the full player ZIP outside the game and copy the new `PBZModLoader-Install.cmd` into that folder before running it.
+
+The installer keeps your existing `mods.ini` and mods, and saves replaced files to `PBZModLoader-Backups/` under the game root. If it finds multiple confirmed loader entries, enter the number of the one to keep and update. The installer moves the other confirmed entries to the backup folder. If it finds only unrecognized DLLs, see `PBZModLoader-安装说明.txt` in the player ZIP. Players do not need Node.js.
 
 ### Mod development template
 
@@ -26,9 +30,9 @@ Install Node.js and npm on your development machine, then run `npm ci`, `npm run
 
 ### Develop mods with AI
 
-Open this repository in Codex and invoke [`$pbz-mod-dev`](.agents/skills/pbz-mod-dev/SKILL.md), for example: “Use `$pbz-mod-dev` to build a TypeScript mod that logs the map only when it changes and supports hot reload.” The skill uses the template and SDK above to scaffold a project, look up APIs, build the mod, and diagnose loader logs.
+Install the optional [`pbz-mod-dev`](templates/skills/pbz-mod-dev/SKILL.md) skill to use the template and SDK above to scaffold a project, look up APIs, build the mod, and diagnose loader logs.
 
-To use the skill in other projects, run `python scripts/package-mod-skill.py` from the checkout to create `build/skills/pbz-mod-dev.zip` with the template and SDK included. If a ZIP already exists at the default path, use `--output <new-path>` to write it to a new file. Extract the `pbz-mod-dev/` folder into `~/.codex/skills/` (or `$CODEX_HOME/skills/`) for personal use, or into the target project's `.agents/skills/`. Invoke `$pbz-mod-dev` in a new session.
+Run `python scripts/package-mod-skill.py` from the repository root to create `build/skills/pbz-mod-dev.zip` with the template and SDK included. If a ZIP already exists at the default path, use `--output <new-path>` to write it to a new file. Extract the `pbz-mod-dev/` folder into the target project's `.agents/skills/` or into `~/.codex/skills/` (or `$CODEX_HOME/skills/`) for personal use. In a new session, try “Use `$pbz-mod-dev` to build a TypeScript mod that logs the map only when it changes and supports hot reload.”
 
 ### Technical approach
 
@@ -87,7 +91,7 @@ The four alternative entry points passed startup validation on the Steam build t
 
 Builds use fixed export lists in `src/version.def` and `src/proxies/*.def`. `scripts/generate-proxies.cjs` generates five sets of configurations and forwarding stubs without reading the build machine's System32 directory. Named exports are forwarded by name where possible; NONAME exports use ordinals. System functions are resolved on demand, so missing optional interfaces that are never used do not prevent startup. Calling an unavailable interface on an unknown system fails fast. These lists come from the exports observed on the locally tested system and do not guarantee undocumented ordinal ABIs across all historical Windows versions. Only proxies loaded statically during startup install the executable entry hook; proxies loaded through LoadLibrary at runtime only forward functions.
 
-`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` defaults to stable version `1.0.2` and checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
+`build.ps1 -Test` checks static loading, entry point restoration, representative API forwarding, concurrent calls, and export counts for all five proxies, plus duplicate-entry and late-loading safeguards. Existing version proxy tests for multiple layouts, ABI behavior, and game signatures remain in place. `package.ps1` checks all five DLLs, both platforms' default entry points, the ZIP allowlist, and extracted file hashes.
 
 ## 0.3.0-preview: Platform-independent bootstrap
 
@@ -101,7 +105,7 @@ Additional checks:
 
 ```powershell
 .\build.ps1 -Compiler C:\path\to\clang++.exe -Test -GameExe C:\path\to\PBZ.exe
-.\package.ps1 -Version 1.0.3
+.\package.ps1 -Version 1.0.4
 ```
 
 `-GameExe` reads the file without launching or modifying the game. This regression test targets known Steam baseline files and checks scan results, address rearrangement, ASLR, call-offset changes, and rejection of ambiguous or damaged data.
@@ -134,8 +138,14 @@ Developers can use the [read-only reflection export tool](scripts/REFLECTION.md)
 ```powershell
 npm ci
 .\build.ps1 -Compiler C:\path\to\llvm-mingw\bin\clang++.exe -Test
-.\package.ps1 -Version 1.0.3
-.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.3-win64.zip
+.\package.ps1 -Version '<loader-version>'
+```
+
+Replace `<loader-version>` with the intended release version. The player ZIP includes the manual installation guide. `package-installer.ps1` packages the one-click installer and its README in a separate ZIP that works with an existing player ZIP.
+
+```powershell
+.\package-installer.ps1 -Version 1.0.0
+.\tests\installer.ps1 -Zip .\releases\PBZModLoader-1.0.4-win64.zip -InstallerZip .\releases\PBZModLoader-Installer-1.0.0.zip
 ```
 
 Neither the main project nor release packages include preinstalled mods. Use the standalone template above to develop your own.
@@ -144,7 +154,7 @@ On each startup, the loader automatically discovers `mods/<ID>/main.ts` or `main
 
 The player's `mods.ini` and `mods/` reside in `ProjectPBZ/PBZModLoader`, and `Entry` paths are relative to that directory. Older installations with an extra `Mods` directory level must move their contents up to `ProjectPBZ/PBZModLoader` and update the DLL. See the installation instructions for migration details; `Entry` values in `mods.ini` do not need changing.
 
-At startup, the DLL validates configuration and synchronizes `mods/` to `Content/JavaScript/PBZModLoader/generated-mods` for the existing PuerTS search path. This cache is rebuilt on each startup and should not be edited directly. Press Alt+F5 during gameplay to request a hot reload; see below. Only the packaged `bootstrap.js` and `manager.js` need to be installed under `Content/JavaScript`; mod source files do not belong there.
+At startup, the DLL validates configuration and synchronizes `mods/` to `Content/JavaScript/PBZModLoader/generated-mods` for the existing PuerTS search path. This cache is rebuilt on each startup and should not be edited directly. The default hot reload shortcut during gameplay is Alt+F5. Only the packaged `bootstrap.js` and `manager.js` need to be installed under `Content/JavaScript`; mod source files do not belong there.
 
 Native builds produce `version.dll`, `hid.dll`, `winmm.dll`, `dsound.dll`, and `dxgi.dll` under `build`. Use `-VerifyOnly -Test` to check existing DLLs without recompiling. `package.ps1` refuses to overwrite an existing version and checks the ZIP root layout, allowlist, and hashes of all extracted files. New code still requires actual Steam startup and map-transition acceptance testing before release; static and host tests do not replace in-game testing.
 
@@ -164,10 +174,12 @@ Run `npm ci` before building. `build.ps1` prepares the bundled compiler and lice
 
 ### Mod hot reload
 
-After installing the updated DLL, `bootstrap.js`, and `manager.js` and launching the game, save your JS/TS files or dependencies under `ProjectPBZ/PBZModLoader/mods/`, return to the game, and press **Alt+F5**. The shortcut only responds while the game window is in the foreground, does not repeat while held, and does not watch for file changes. The JS thread polls for reload requests once per second; TS is compiled first. For locally built mods, copy the updated build output into the installation directory before reloading. A notification appears in the upper-left corner for about four seconds, indicating success, failure, or a skipped reload, without intercepting mouse input.
+After installing the updated DLL, `bootstrap.js`, and `manager.js` and launching the game, save your JS/TS files or dependencies under `ProjectPBZ/PBZModLoader/mods/`, return to the game, and press the reload shortcut (**Alt+F5** by default). The shortcut only responds while the game window is in the foreground, does not repeat while held, and does not watch for file changes. The JS thread polls for reload requests once per second; TS is compiled first. For locally built mods, copy the updated build output into the installation directory before reloading. A notification appears in the upper-left corner for about four seconds, indicating success, failure, or a skipped reload, without intercepting mouse input.
+
+To change the shortcut, add a setting such as `ReloadHotkey=Ctrl+Shift+F8` under `[Loader]` in `ProjectPBZ/PBZModLoader/mods.ini`. Save the file to switch shortcuts while the game is running. Use any combination of `Ctrl`, `Alt`, and `Shift` with a key from `A–Z`, `0–9`, or `F1–F24`, or use a key on its own. Windows reserves `F12` for debugging. Key names are case-insensitive. A missing, blank, or invalid value falls back to Alt+F5. If registration fails, `loader.log` records the shortcut and Windows error code.
 
 Each request reloads the entire mod set, including unchanged mods. Separate version directories isolate CommonJS entry points and relative dependency caches. Before loading new entry points, the loader calls and awaits the exported `stop()` functions of all old instances, including Promise results. Mods must clear timers, unsubscribe from events, and release held resources in this function. Even mods without persistent resources should export an empty `stop()`. If the function is missing or cleanup throws, the loader retains the old instance and skips that mod, preventing duplicate registration by the new version. A pending `stop()` is awaited; no further reload begins until it finishes. Map transitions and game exit do not trigger `stop()`.
 
-Adding or removing mods and changing `[Mods] ID=0` also take effect after Alt+F5. The loader calls `stop()` before removing or disabling a mod. If TS compilation fails, the old instance is retained and a failure notification appears; fix the error and press Alt+F5 again. Finish saving before requesting a reload and avoid editing files during compilation. A JS entry point exception may already have caused side effects while preventing access to its exports, so a failed instance is not automatically retried during that game session. Restart after fixing it. Mods should clean up resources created before an initialization failure themselves.
+Adding or removing mods and changing `[Mods] ID=0` also take effect after hot reload. The loader calls `stop()` before removing or disabling a mod. If TS compilation fails, the old instance is retained and a failure notification appears. Fix the error and use the reload shortcut again. Finish saving before requesting a reload and avoid editing files during compilation. A JS entry point exception may already have caused side effects while preventing access to its exports, so a failed instance is not automatically retried during that game session. Restart after fixing it. Mods should clean up resources created before an initialization failure themselves.
 
 Temporary output is stored in `Content/JavaScript/PBZModLoader/generated-reloads/`. Version directories are retained until the next startup to support old instances and deferred `require` calls. Many reloads during a long session increase disk and module-cache usage. Only relative dependencies inside the mod directory are isolated by version; do not use absolute loader cache paths to reference modules across versions. Search logs for `hot reload published`, `stopped`, `reload complete`, and `reload blocked`.

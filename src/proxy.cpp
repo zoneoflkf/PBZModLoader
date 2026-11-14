@@ -2,6 +2,7 @@
 #include "core.hpp"
 #include "evidence-log.hpp"
 #include "mod-validation.hpp"
+#include "reload-hotkey.hpp"
 #include "proxy_config.hpp"
 #include <atomic>
 
@@ -64,19 +65,41 @@ static DWORD WINAPI monitor(void* context) noexcept {
     U64 slab=(U64)context,next=0,starts=0;
     bool hotkeyRegistered=false,hotkeyWarning=false;
     constexpr int hotkeyId=0x5042;
+    constexpr ULONGLONG hotkeyPollInterval=250;
     unsigned revision=1;
     try {
+        const auto hotkeyConfig=reloadRoot/L"mods.ini";
+        auto hotkey=readReloadHotkey(hotkeyConfig).value_or(ReloadHotkey{});
+        if(hotkey.invalid) log("Invalid Loader.ReloadHotkey; using Alt+F5");
+        log("Hot reload shortcut: "+hotkey.name);
+        auto nextHotkeyPoll=GetTickCount64()+hotkeyPollInterval;
         for(;;) {
             if(evidenceLog.enabled()) drain(GetCurrentProcess(),slab,next);
             U64 current=0; read(GetCurrentProcess(),slab+4104,&current,8);
             if(current!=starts) { starts=current; log("main-start count="+std::to_string(starts)); }
+            const auto now=GetTickCount64();
+            if(now>=nextHotkeyPoll) {
+                nextHotkeyPoll=now+hotkeyPollInterval;
+                if(auto updated=readReloadHotkey(hotkeyConfig)) {
+                    if(updated->key!=hotkey.key || updated->modifiers!=hotkey.modifiers) {
+                        if(hotkeyRegistered) UnregisterHotKey(nullptr,hotkeyId);
+                        hotkeyRegistered=false;
+                        hotkeyWarning=false;
+                        log("Hot reload shortcut changed: "+updated->name);
+                    }
+                    if(updated->invalid && !hotkey.invalid) log("Invalid Loader.ReloadHotkey; using Alt+F5");
+                    hotkey=std::move(*updated);
+                }
+            }
             DWORD foregroundProcess=0;
             GetWindowThreadProcessId(GetForegroundWindow(),&foregroundProcess);
             bool focused=foregroundProcess==GetCurrentProcessId();
             if(focused && !hotkeyRegistered) {
-                hotkeyRegistered=RegisterHotKey(nullptr,hotkeyId,MOD_ALT|MOD_NOREPEAT,VK_F5)!=0;
+                hotkeyRegistered=RegisterHotKey(nullptr,hotkeyId,hotkey.modifiers|MOD_NOREPEAT,hotkey.key)!=0;
                 if(!hotkeyRegistered && !hotkeyWarning) {
-                    log("Alt+F5 registration failed; shortcut may be in use"); hotkeyWarning=true;
+                    const auto error=GetLastError();
+                    log("Hot reload shortcut registration failed: "+hotkey.name+" (error="+std::to_string(error)+")");
+                    hotkeyWarning=true;
                 }
             } else if(!focused && hotkeyRegistered) {
                 UnregisterHotKey(nullptr,hotkeyId); hotkeyRegistered=false;
@@ -85,7 +108,7 @@ static DWORD WINAPI monitor(void* context) noexcept {
             MSG message{};
             bool requested=false;
             while(PeekMessageW(&message,nullptr,WM_HOTKEY,WM_HOTKEY,PM_REMOVE))
-                if(message.wParam==hotkeyId && focused) requested=true;
+                if(message.wParam==hotkeyId && focused && hotkeyRegistered && hotkey.matches(message.lParam)) requested=true;
             if(requested) {
                 // Compilation may take time; do not reserve another app's
                 // shortcut or queue repeated requests while preparing a batch.

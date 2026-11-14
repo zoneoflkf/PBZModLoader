@@ -6,11 +6,11 @@
 
 PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，为玩家提供统一的脚本 MOD 加载入口，也为开发者提供 JavaScript / TypeScript 开发模板和游戏 API 类型声明 SDK。支持自动发现 MOD、配置启用或禁用，以及通过 `Alt+F5` 热重载支持清理生命周期的 MOD。
 
-**当前加载器版本：1.0.4 · [Nexus Mods 下载](https://www.nexusmods.com/phantombladezero/mods/113?tab=files)**
+**当前加载器版本：1.0.4 · [Nexus Mods 下载](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) · [GitHub 下载](https://github.com/zoneoflkf/PBZModLoader/releases/tag/v1.0.4)**
 
 ### Windows 一键安装（独立安装器）
 
-加载器主包提供手动安装说明，不含一键安装脚本。一键安装需从 [Files](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) 的 **Optional files** 另行下载独立安装器。
+加载器主包提供手动安装说明，不含一键安装脚本。一键安装需另行下载独立安装器，可从 [Nexus Mods 的 Optional files](https://www.nexusmods.com/phantombladezero/mods/113?tab=files) 获取，或从 [GitHub 下载 ZIP](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.4/PBZModLoader-Installer-1.0.0.zip)。
 
 1. **退出游戏**，将独立安装器 `PBZModLoader-Installer-…zip` 解压到游戏目录之外，并把未解压的加载器主包 `PBZModLoader-…-win64.zip` 放到 `PBZModLoader-Install.cmd` 旁。
 2. **双击 `PBZModLoader-Install.cmd`**。检测到唯一的 Steam 安装时会自动使用它，否则请选同时包含 `ProjectPBZ` 和 `platform` 的游戏根目录。也可把游戏根目录拖到 `.cmd` 上来指定安装位置。
@@ -22,7 +22,7 @@ PBZModLoader 是《影之刃零》（Phantom Blade Zero）的 MOD 加载器，�
 
 ### MOD 开发模板
 
-**直接下载：[MOD 开发模板 ZIP（模板 0.2.0 / SDK 0.3.3）](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.0/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
+**直接下载：[MOD 开发模板 ZIP（模板 0.2.0 / SDK 0.3.3）](https://github.com/zoneoflkf/PBZModLoader/releases/download/v1.0.4/PBZModLoader-TS-Template-0.2.0-SDK-0.3.3.zip)**
 
 想制作自己的 MOD，可从 [TypeScript MOD 最小模板](templates/ts-mod/) 开始，详细步骤见 [模板开发说明](templates/ts-mod/README.md)。模板包含示例入口、构建脚本和游戏 API SDK，提供 UE / PuerTS 类型补全与严格类型检查；复制整个模板目录即可独立开发，无需编译加载器 C++ 工程。
 
